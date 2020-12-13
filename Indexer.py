@@ -98,10 +98,15 @@ class Indexer:
             doc_id += 1
 
     def __init__(self, dataset):
+
         global word_Dict
+
         CACHE_DIR = "Cache"
+
         if os.path.isdir(CACHE_DIR):
+
             print("Loading Cached data")
+
             f_stopWords = open(CACHE_DIR+"/stopWords.data", 'rb')
             f_postingList = open(CACHE_DIR+"/postingList.data", 'rb')
             f_docSet = open(CACHE_DIR+"/docSet.data", 'rb')
@@ -116,23 +121,29 @@ class Indexer:
 
         else:
             print("Indexing")
+
             os.mkdir(CACHE_DIR)
+
             f_stopWords = open(CACHE_DIR+"/stopWords.data", 'wb')
             f_postingList = open(CACHE_DIR+"/postingList.data", 'wb')
             f_docSet = open(CACHE_DIR+"/docSet.data", 'wb')
             f_wordDict = open(CACHE_DIR+"/wordDict.data", 'wb')
+
             self.stopWords = WordsList("stop_words.txt")
             self.posting_list = Posting_List()
             self.doc_set = Posting_List()
+
             self.ProcessDataset(dataset)
+
             pickle.dump(self.stopWords, f_stopWords)
             pickle.dump(self.posting_list, f_postingList)
             pickle.dump(self.doc_set, f_docSet)
             pickle.dump(word_Dict, f_wordDict)
+
             print("Data Indexed")
-        self.posting_list.get_Node_info("iran")
-        self.doc_set.get_Node_info(0)
-        print(len(word_Dict), word_Dict['iran'])
+        # print(self.posting_list.get_Node_info("iran"))
+        # print(self.doc_set.get_Node_info(0))
+        # print(len(word_Dict), word_Dict['iran'])
 
 
 data = DatasetLoader()
