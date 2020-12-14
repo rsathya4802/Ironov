@@ -166,14 +166,13 @@ class Indexer:
 
 data = DatasetLoader()
 indexer = Indexer(data.speech_details)
-indexer.posting_list.get_Node_info("iran")
 spellChecker = spell.SpellChecker(word_Dict)
 booleanRet = boolean_ret.BooleanRet(indexer)
 
 print("Enter the Query")
 query = input()
 print("Doing Spell checking on the query")
-print("Following is the query after spell correction")
+print("Following is the query after spell correction and stop words removal")
 
 # qyery formulation ofr boolean retrieval
 query_word = [x.lower() for x in query.split()]
@@ -182,7 +181,7 @@ spell_correct_query = []
 for word in query_word:
     result = spellChecker.correctSentencePerWord(word)
     # print(result)
-    if result in word_Dict:
+    if result in word_Dict and not indexer.stopWords.isInList(result):
         spell_correct_query.append(result)
 
 
