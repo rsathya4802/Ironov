@@ -52,7 +52,7 @@ class Posting_List:
 
     def get_Node_info(self, key):
         return self.posting_list[key].get_Node_info()
-        
+
     # new method by abhinav to return posting for a key
     # without the key
     def get_Node_info2(self, key):
@@ -249,6 +249,6 @@ for word in query_word:
 
 print(spell_correct_query)
 
-print(BR(spell_correct_query,indexer))
+print(boolean_retrieval(spell_correct_query,indexer))
 
 
