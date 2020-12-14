@@ -36,6 +36,9 @@ class Posting_List_Node:
 
     def get_Node_info(self):
         return (self.list_entries_count, self.entries)
+    # new method by abhinav
+    def get_Node_info2(self):
+        return (self.entries)
 
 
 class Posting_List:
@@ -49,7 +52,14 @@ class Posting_List:
 
     def get_Node_info(self, key):
         return self.posting_list[key].get_Node_info()
-
+        
+    # new method by abhinav to return posting for a key
+    # without the key
+    def get_Node_info2(self, key):
+        if key in self.posting_list:
+            return self.posting_list[key].get_Node_info2()
+        else:
+            return None
 
 class DatasetLoader:
 
@@ -96,7 +106,10 @@ class Indexer:
                         self.posting_list.add_to_posting(lower_word, doc_id)
                         self.doc_set.add_to_posting(doc_id, lower_word)
             doc_id += 1
-
+    
+    def list_for_word(self, word):
+        return self.posting_list.get_Node_info2(word)
+        
     def __init__(self, dataset):
 
         global word_Dict
@@ -141,16 +154,101 @@ class Indexer:
             pickle.dump(word_Dict, f_wordDict)
 
             print("Data Indexed")
-        # print(self.posting_list.get_Node_info("iran"))
+        # print(self.posting_list.get_Node_info("hello"))
         # print(self.doc_set.get_Node_info(0))
         # print(len(word_Dict), word_Dict['iran'])
+
+# def intersect():
+
+
+def boolean_retrieval(words, indexer):
+    
+    n = len(words)
+    length = n
+    if n == 0:
+
+        return 
+    word_set = set(words)
+    
+    posting = dict()
+    for index, word in enumerate(word_set):
+        insert = indexer.list_for_word(word)
+        if insert:
+            insert  = insert.keys()
+            posting[index] = set(insert)
+        else:
+            index -= 1
+    # print(posting)
+
+    n = len(posting)
+
+    if n % 2 != 0:
+        last = posting[n - 1]
+        del posting[n - 1]
+        n -= 1
+    
+    new_post = dict()
+    while (n > 1):
+        n = len(posting)
+        new_post.clear()
+        j = 0
+        for i in range(0, n,2):
+            common = posting[i] & posting[i + 1]
+            if (common):
+                new_post[j] = common
+            else:
+                j -= 1
+            
+            j += 1
+        
+        posting = new_post
+    
+    if not bool(posting):
+        return {}
+    
+    else:
+        if length%2 != 0:
+            common = posting[0] & last
+            return common
+        else:
+            return posting[0]
+
+
+    
+
+        
+
+    # lists = {}
+    # for words in word_set:
+
 
 
 data = DatasetLoader()
 indexer = Indexer(data.speech_details)
+indexer.posting_list.get_Node_info("iran")
 spellChecker = spell.SpellChecker(word_Dict)
+iran = indexer.list_for_word("delhi")
+# print(iran)
+print(iran.keys())
 print("Enter the Query")
 query = input()
 print("Doing Spell checking on the query")
-print("These are the corrections that we found")
-spellChecker.correctSentence(query)
+print("Following is the query after spell correction")
+
+# qyery formulation ofr boolean retrieval
+query_word = query.split()
+spell_correct_query = []
+# print(spellChecker.correctSentencePerWord("deli"))
+
+for word in query_word:
+    result = spellChecker.correctSentencePerWord(word)
+    # print(result)
+    if result in word_Dict:
+        spell_correct_query.append(result)
+
+
+print(spell_correct_query)
+
+print(BR(spell_correct_query,indexer))
+
+
