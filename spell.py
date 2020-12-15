@@ -89,7 +89,7 @@ class SpellChecker:
         word, k = word_k
         score_k = {'1': 100, '2': 10, 'other': 0.2}
         score += score_k[str(k) if str(k) in ('1', '2')
-                        else 'other']*math.log(self.word_Dict[word]+1, 10)
+                         else 'other']*math.log(self.word_Dict[word]+1, 10)
 
         return score
 
@@ -239,9 +239,9 @@ class SpellChecker:
                     print(word, end=" ", file=fil)
         if fil != None:
             print('', file=fil)
-    
+
     # get the best spell correct word for a given query
     # by abhinav
     def correctSentencePerWord(self, sent, n=2, fil=None):
         best_candidate = self.getBestCandidate(sent, 2)
-        return best_candidate[0][0]
+        return best_candidate[0][0] if best_candidate != [] else "<unknown>"

@@ -178,13 +178,21 @@ print("Following is the query after spell correction and stop words removal")
 query_word = [x.lower() for x in query.split()]
 spell_correct_query = []
 
+error_flag = False
+
 for word in query_word:
     result = spellChecker.correctSentencePerWord(word)
+    if result == "<unknown>":
+        error_flag = True
+        spell_correct_query.append(result)
     # print(result)
     if result in word_Dict and not indexer.stopWords.isInList(result):
         spell_correct_query.append(result)
 
-
 print(' '.join(spell_correct_query))
 
-print(booleanRet.boolean_retrieval(spell_correct_query))
+if error_flag:
+    print("Unknown words found. Terminating!")
+
+else:
+    print(booleanRet.boolean_retrieval(spell_correct_query))
