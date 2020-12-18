@@ -2,7 +2,8 @@ import csv
 import os
 import spell
 import pickle
-import boolean_ret
+import SDT_calc
+# import boolean_ret
 
 word_Dict = {}
 
@@ -167,12 +168,13 @@ class Indexer:
 data = DatasetLoader()
 indexer = Indexer(data.speech_details)
 spellChecker = spell.SpellChecker(word_Dict)
-booleanRet = boolean_ret.BooleanRet(indexer)
+# booleanRet = boolean_ret.BooleanRet(indexer)
+sdt = SDT_calc.SDT(indexer, data.speech_details)
 
 print("Enter the Query")
 query = input()
 print("Doing Spell checking on the query")
-print("Following is the query after spell correction and stop words removal")
+print("Following is the query after spell correction")
 
 # qyery formulation ofr boolean retrieval
 query_word = [x.lower() for x in query.split()]
@@ -181,13 +183,16 @@ spell_correct_query = []
 error_flag = False
 
 for word in query_word:
-    result = spellChecker.correctSentencePerWord(word)
-    if result == "<unknown>":
-        error_flag = True
-        spell_correct_query.append(result)
-    # print(result)
-    if result in word_Dict and not indexer.stopWords.isInList(result):
-        spell_correct_query.append(result)
+    if word in sdt.non_terminals:
+        spell_correct_query.append(word)
+    else:
+        result = spellChecker.correctSentencePerWord(word)
+        if result == "<unknown>":
+            error_flag = True
+            spell_correct_query.append(result)
+            print(result)
+        if result in word_Dict:
+            spell_correct_query.append(result)
 
 print(' '.join(spell_correct_query))
 
@@ -195,4 +200,5 @@ if error_flag:
     print("Unknown words found. Terminating!")
 
 else:
-    print(booleanRet.boolean_retrieval(spell_correct_query))
+    # print(booleanRet.boolean_retrieval(spell_correct_query))
+    print(sdt.calc(spell_correct_query+['!']))
