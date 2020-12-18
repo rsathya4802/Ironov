@@ -264,6 +264,7 @@ def probabilistic_result(word_list, retrieved_doc,indexer):
         s.append(0)
     ranking = probabilstic_model(ranking, 20, word_list, N, u, p, term_count, binary_index, s)
     print(ranking)
+    return ranking
 
 
 
@@ -332,5 +333,5 @@ else:
     retrieved_list = sdt.calc(boolean_spell_correct_query)
     print(retrieved_list)
 
-
-top_5_relevant_docs = probabilistic_result(spell_correct_query,retrieved_list,indexer)
+# ranked list of docs is recieved , get top 20
+top_20_relevant_docs = probabilistic_result(spell_correct_query,retrieved_list,indexer)
