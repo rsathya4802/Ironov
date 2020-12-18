@@ -169,16 +169,17 @@ def cal_score(binary_index, p, u, word_list):
     for index, word in enumerate(binary_index):
         if word == 1:
             if 1 - p[index] != 0:
-                if p[index] != 0:
-                    score += round(math.log(round(p[index] / (1 - p[index]), 2), 2), 4)
+                if p[index] != 0 and round(p[index] / (1 - p[index]), 8) >= 0:
+                    # print(round(p[index] / (1 - p[index]), 8))
+                    score += round(math.log(round(p[index] / float(1 - p[index]), 8), 2), 4)
                 else:
                     score += -100000000
             else:
                 score += 100000000
             
             if u[index] != 0:
-                if 1 - u[index] != 0:
-                    score += round(math.log(round((1 - u[index]) / u[index], 2), 2), 4)
+                if 1 - u[index] != 0 and round((1 - u[index]) / u[index], 8) >= 0:
+                    score += round(math.log(round(float(1 - u[index]) / u[index], 8), 2), 4)
                 else:
                     score += -100000000
             else:
@@ -205,18 +206,20 @@ def probabilstic_model(ranking, S, word_list, N, u, p,term_count,binary_index,s)
 
     for i, word in enumerate(word_list):
         p[i] = round(term_count[i] / S, 4)
+    
+    # print(p)
 
     for i,word in enumerate(word_list):
         u[i] = round((term_count[i] - s[i]) / (N - S), 4)
-    
+    # print(u)
     new_ranking = ranking
     for doc in binary_index:
         score = cal_score(binary_index[doc], p, u, word_list)
         new_ranking[doc] = score
     
     new_ranking = dict(sorted(ranking.items(), key=lambda item: item[1], reverse=True))
-    print(new_ranking)
-    if cmp(new_ranking, ranking) == 0:
+    # print(new_ranking)
+    if (new_ranking == ranking) == True:
         return ranking
     
     else:
@@ -250,7 +253,7 @@ def probabilistic_result(word_list, retrieved_doc,indexer):
         for index, word in enumerate(binary_index[doc]):
             if word == 1:
                 term_count[index] += 1
-    print(term_count)
+    # print(term_count)
     u = []
     for ind, word in enumerate(word_list):
         u.append(round(term_count[ind] / N, 2))
@@ -263,7 +266,7 @@ def probabilistic_result(word_list, retrieved_doc,indexer):
     for word in word_list:
         s.append(0)
     ranking = probabilstic_model(ranking, 20, word_list, N, u, p, term_count, binary_index, s)
-    print(ranking)
+    # print(ranking)
     return ranking
 
 
@@ -322,16 +325,21 @@ for word in query_word:
 # print(spell_correct_query+['!'])
 
 boolean_spell_correct_query = probabilistic_boolean_query(spell_correct_query)
-print(spell_correct_query)
-print(boolean_spell_correct_query)
+# print(spell_correct_query)
+# print(boolean_spell_correct_query)
 boolean_spell_correct_query = boolean_spell_correct_query.split()
 
 
+# retrieve list using boolean
 if error_flag:
     print("Unknown words found. Terminating!")
 else:
     retrieved_list = sdt.calc(boolean_spell_correct_query)
-    print(retrieved_list)
+    # print(retrieved_list)
 
 # ranked list of docs is recieved , get top 20
 top_20_relevant_docs = probabilistic_result(spell_correct_query,retrieved_list,indexer)
+
+for indx, key in enumerate(top_20_relevant_docs):
+    if indx <= 20:
+        print(key)
