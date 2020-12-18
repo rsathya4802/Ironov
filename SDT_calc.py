@@ -55,7 +55,7 @@ class SDT:
         # '13 r6 r6 . . r6 . r6']
 
         self.parse_table = [{'|': '', '^': '', '(': '', ')': '', '~': '', 'term': '', '!': '', 'S': '',
-                             'E': '', 'T': '', 'F': ''} for i in range(len(self.raw_parse_table))]
+                            'E': '', 'T': '', 'F': ''} for i in range(len(self.raw_parse_table))]
         self.Initialize()
 
     def orOp(self):

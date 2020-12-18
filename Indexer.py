@@ -3,6 +3,7 @@ import os
 import spell
 import pickle
 import SDT_calc
+import math
 # import boolean_ret
 
 word_Dict = {}
@@ -162,13 +163,134 @@ class Indexer:
         # print(self.doc_set.get_Node_info(0))
         # print(len(word_Dict), word_Dict['iran'])
 
-# def intersect():
+# calculate score
+def cal_score(binary_index, p, u, word_list):
+    score = 0
+    for index, word in enumerate(binary_index):
+        if word == 1:
+            if 1 - p[index] != 0:
+                if p[index] != 0:
+                    score += round(math.log(round(p[index] / (1 - p[index]), 2), 2), 4)
+                else:
+                    score += -100000000
+            else:
+                score += 100000000
+            
+            if u[index] != 0:
+                if 1 - u[index] != 0:
+                    score += round(math.log(round((1 - u[index]) / u[index], 2), 2), 4)
+                else:
+                    score += -100000000
+            else:
+                score += 100000000
+    
+    if score == 0:
+        score = -100000000
+
+    return score
+
+# recursive method
+def probabilstic_model(ranking, S, word_list, N, u, p,term_count,binary_index,s):
+    
+    for  indx, doc in enumerate(s):
+        s[indx] = 0
+
+    for index, doc in enumerate(ranking):
+        if index > S:
+            break
+        else:
+            for idx, word in enumerate(binary_index[doc]):
+                if word == 1:
+                    s[idx] += 1
+
+    for i, word in enumerate(word_list):
+        p[i] = round(term_count[i] / S, 4)
+
+    for i,word in enumerate(word_list):
+        u[i] = round((term_count[i] - s[i]) / (N - S), 4)
+    
+    new_ranking = ranking
+    for doc in binary_index:
+        score = cal_score(binary_index[doc], p, u, word_list)
+        new_ranking[doc] = score
+    
+    new_ranking = dict(sorted(ranking.items(), key=lambda item: item[1], reverse=True))
+    print(new_ranking)
+    if cmp(new_ranking, ranking) == 0:
+        return ranking
+    
+    else:
+        return probabilstic_model(new_ranking,S,word_list,N,u,p,term_count,binary_index,s)
+
+# first loop of probability model
+def probabilistic_result(word_list, retrieved_doc,indexer):
+    
+    ranking = {}
+    for docs in retrieved_doc:
+        ranking[docs] = 1.0
+    ranking_result = dict(sorted(ranking.items(), key=lambda item: item[1], reverse=True))
+
+    binary_index = {}
+    for doc in retrieved_doc:
+        binary_index[doc] = ([int(word in indexer.doc_set.get_Node_info(doc)[1]) for word in word_list])
+
+    p = []
+    for word in word_list:
+        p.append(0.5)
+    N = 0
+    for doc in binary_index:
+        for word in binary_index[doc]:
+            if word == 1:
+                N += 1
+    term_count = []
+    for word in word_list:
+        term_count.append(0)
+    
+    for doc in binary_index:
+        for index, word in enumerate(binary_index[doc]):
+            if word == 1:
+                term_count[index] += 1
+    print(term_count)
+    u = []
+    for ind, word in enumerate(word_list):
+        u.append(round(term_count[ind] / N, 2))
+    # print(ranking)
+    for doc in binary_index:
+        score = cal_score(binary_index[doc], p, u, word_list)
+        ranking[doc] = score
+    ranking = dict(sorted(ranking.items(), key=lambda item: item[1], reverse=True))
+    s = []
+    for word in word_list:
+        s.append(0)
+    ranking = probabilstic_model(ranking, 20, word_list, N, u, p, term_count, binary_index, s)
+    print(ranking)
+
+
+
+
+
+
+
+# given a normal query convert it to boolean OR query
+def probabilistic_boolean_query(wordset):
+    final_query = ""
+    for word in wordset:
+        if word != wordset[-1]:
+            final_query += word + " | "
+        else:
+            final_query += word + " !"
+    
+    
+    return final_query
+
+
+
 
 
 data = DatasetLoader()
 indexer = Indexer(data.speech_details)
 spellChecker = spell.SpellChecker(word_Dict)
-# booleanRet = boolean_ret.BooleanRet(indexer)
+
 sdt = SDT_calc.SDT(indexer, data.speech_details)
 
 print("Enter the Query")
@@ -194,11 +316,21 @@ for word in query_word:
         if result in word_Dict:
             spell_correct_query.append(result)
 
-print(' '.join(spell_correct_query))
+
+# print(' '.join(spell_correct_query))
+# print(spell_correct_query+['!'])
+
+boolean_spell_correct_query = probabilistic_boolean_query(spell_correct_query)
+print(spell_correct_query)
+print(boolean_spell_correct_query)
+boolean_spell_correct_query = boolean_spell_correct_query.split()
+
 
 if error_flag:
     print("Unknown words found. Terminating!")
-
 else:
-    # print(booleanRet.boolean_retrieval(spell_correct_query))
-    print(sdt.calc(spell_correct_query+['!']))
+    retrieved_list = sdt.calc(boolean_spell_correct_query)
+    print(retrieved_list)
+
+
+top_5_relevant_docs = probabilistic_result(spell_correct_query,retrieved_list,indexer)
