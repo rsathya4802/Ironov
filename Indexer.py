@@ -217,7 +217,7 @@ def probabilstic_model(ranking, S, word_list, N, u, p,term_count,binary_index,s)
         score = cal_score(binary_index[doc], p, u, word_list)
         new_ranking[doc] = score
     
-    new_ranking = dict(sorted(new_rankingranking.items(), key=lambda item: item[1], reverse=True))
+    new_ranking = dict(sorted(new_ranking.items(), key=lambda item: item[1], reverse=True))
     # print(new_ranking)
     if (new_ranking == ranking) == True:
         return ranking
